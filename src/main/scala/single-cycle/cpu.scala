@@ -43,8 +43,35 @@ class SingleCycleCPU(implicit val conf: CPUConfig) extends BaseCPU {
   }
 
   //Your code goes here
+  // instruction will be a 32 bit long array, split in following lines
+  // opcode
+  control.io.opcode := instruction(6,0) 
+  // rd
+  registers.io.writereg := instruction(11,7)
+  // funct 3
+  aluControl.io.funct3 := instruction(14,12)  
+  // rs1
+  registers.io.readreg1 := instruction(19,15)
+  // rs2
+  registers.io.readreg2 := instruction(24,20)
+  // funct 7
+  aluControl.io.funct7 := instruction(31,25)
 
+  // wire the result back to register's  
+  registers.io.writedata := alu.io.result
+  // check validity of registers
+  registers.io.wen := (control.io.writeback_valid === 1.U) & (registers.io.writereg =/= 0.U)
+  
+  // wire aluop and operation  
+  aluControl.io.aluop := control.io.aluop
+  alu.io.operation := aluControl.io.operation
+
+  // wire input x and y to readdata
+  alu.io.operand1 := registers.io.readdata1
+  alu.io.operand2 := registers.io.readdata2
+  
 }
+
 
 /*
  * Object to make it easier to print information about the CPU
