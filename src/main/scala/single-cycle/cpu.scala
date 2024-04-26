@@ -59,9 +59,17 @@ class SingleCycleCPU(implicit val conf: CPUConfig) extends BaseCPU {
 
   // wire the result back to register's  
   registers.io.writedata := alu.io.result
-  // check validity of registers
-  registers.io.wen := (control.io.writeback_valid === 1.U) & (registers.io.writereg =/= 0.U)
   
+  // check validity of registers
+ 
+   when (registers.io.writereg =/= 0.U && control.io.writeback_valid === 1.U) {
+    registers.io.wen := true.B
+  } .otherwise {
+    registers.io.wen := false.B
+  }
+
+
+
   // wire aluop and operation  
   aluControl.io.aluop := control.io.aluop
   alu.io.operation := aluControl.io.operation
@@ -69,7 +77,8 @@ class SingleCycleCPU(implicit val conf: CPUConfig) extends BaseCPU {
   // wire input x and y to readdata
   alu.io.operand1 := registers.io.readdata1
   alu.io.operand2 := registers.io.readdata2
-  
+  pc := pc + 4.U  //incrementing pc for next instruction
+
 }
 
 
